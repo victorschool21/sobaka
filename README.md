@@ -62,7 +62,7 @@ Separação em **camadas** (UI → services → Firebase) facilita manutenção,
 1. Clone o repositório:
 
 ```bash
-git clone https://github.com/SEU_USUARIO/sobaka.git
+git clone https://github.com/victorschool21/sobaka.git
 cd sobaka
 ```
 
