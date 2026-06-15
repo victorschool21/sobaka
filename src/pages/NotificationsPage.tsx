@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { markNotificationRead, subscribeNotifications } from '../services/notificationService';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import type { AppNotification } from '../types';
 import { formatRelativeDate } from '../utils/formatters';
 

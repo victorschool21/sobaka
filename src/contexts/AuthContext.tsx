@@ -1,35 +1,23 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from 'react';
-import { onAuthStateChanged, type User } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { getFirebaseAuth } from '../config/firebase';
 import { isFirebaseConfigured } from '../config/env';
 import { ensureUserProfile, getUserProfile, logoutUser } from '../services/authService';
 import type { UserProfile } from '../types';
-
-interface AuthContextValue {
-  user: User | null;
-  profile: UserProfile | null;
-  loading: boolean;
-  firebaseReady: boolean;
-  setProfile: (profile: UserProfile) => void;
-  refreshProfile: () => Promise<void>;
-  signOut: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null);
+import { AuthContext } from './AuthContextDef';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const firebaseReady = isFirebaseConfigured();
+  const [user, setUser] = useState<import('firebase/auth').User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  // Se o Firebase não está configurado, não há nada para aguardar
+  const [loading, setLoading] = useState(firebaseReady);
 
   const refreshProfile = useCallback(async () => {
     if (!user) return;
@@ -42,10 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!firebaseReady) {
-      setLoading(false);
-      return;
-    }
+    if (!firebaseReady) return;
 
     const auth = getFirebaseAuth();
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -85,10 +70,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth(): AuthContextValue {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth deve ser usado dentro de AuthProvider');
-  return ctx;
 }

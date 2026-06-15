@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Send } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/useAuth';
 import { sendMessage, subscribeMessages } from '../../services/chatService';
 import type { ChatMessage } from '../../types';
 import { chatMessageSchema } from '../../utils/validators';

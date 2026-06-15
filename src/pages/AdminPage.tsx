@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useReducer } from 'react';
 import { getAdminMetrics, listPendingReports, reviewReport } from '../services/adminService';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -6,29 +6,42 @@ import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import type { Report } from '../types';
 import { formatRelativeDate } from '../utils/formatters';
 
-export function AdminPage() {
-  const [metrics, setMetrics] = useState<{ totalOccurrences: number; resolvedOccurrences: number; reunionRate: number } | null>(null);
-  const [reports, setReports] = useState<Report[]>([]);
-  const [loading, setLoading] = useState(true);
+type Metrics = { totalOccurrences: number; resolvedOccurrences: number; reunionRate: number };
+type State = { loading: boolean; metrics: Metrics | null; reports: Report[] };
+type Action =
+  | { type: 'loaded'; metrics: Metrics; reports: Report[] }
+  | { type: 'error' };
 
-  const load = async () => {
-    setLoading(true);
-    const [m, r] = await Promise.all([getAdminMetrics(), listPendingReports()]);
-    setMetrics(m);
-    setReports(r);
-    setLoading(false);
-  };
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'loaded':
+      return { loading: false, metrics: action.metrics, reports: action.reports };
+    case 'error':
+      return { ...state, loading: false };
+    default:
+      return state;
+  }
+}
+
+export function AdminPage() {
+  const [state, dispatch] = useReducer(reducer, { loading: true, metrics: null, reports: [] });
+
+  const load = useCallback(() => {
+    Promise.all([getAdminMetrics(), listPendingReports()])
+      .then(([m, r]) => dispatch({ type: 'loaded', metrics: m, reports: r }))
+      .catch(() => dispatch({ type: 'error' }));
+  }, []);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   const handleReview = async (id: string, status: 'reviewed' | 'dismissed') => {
     await reviewReport(id, status);
-    await load();
+    load();
   };
 
-  if (loading) return <LoadingSpinner label="Carregando painel admin..." />;
+  if (state.loading) return <LoadingSpinner label="Carregando painel admin..." />;
 
   return (
     <div className="page">
@@ -39,23 +52,23 @@ export function AdminPage() {
 
       <section className="stats-grid" aria-label="Métricas">
         <Card title="Total de ocorrências">
-          <p className="stat-value">{metrics?.totalOccurrences ?? 0}</p>
+          <p className="stat-value">{state.metrics?.totalOccurrences ?? 0}</p>
         </Card>
         <Card title="Reencontros">
-          <p className="stat-value">{metrics?.resolvedOccurrences ?? 0}</p>
+          <p className="stat-value">{state.metrics?.resolvedOccurrences ?? 0}</p>
         </Card>
         <Card title="Taxa de sucesso">
-          <p className="stat-value">{metrics?.reunionRate ?? 0}%</p>
+          <p className="stat-value">{state.metrics?.reunionRate ?? 0}%</p>
         </Card>
       </section>
 
       <section aria-labelledby="reports-title">
         <h2 id="reports-title">Denúncias pendentes</h2>
-        {reports.length === 0 ? (
+        {state.reports.length === 0 ? (
           <p className="muted">Nenhuma denúncia pendente.</p>
         ) : (
           <ul className="reports-list">
-            {reports.map((report) => (
+            {state.reports.map((report) => (
               <li key={report.id}>
                 <Card title={`${report.targetType} · ${report.targetId}`}>
                   <p>{report.reason}</p>

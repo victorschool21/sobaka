@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircle, Flag } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import { getOccurrence, updateOccurrence } from '../services/occurrenceService';
 import { createReport } from '../services/adminService';
 import { ChatPanel } from '../components/chat/ChatPanel';

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import { loginUser } from '../services/authService';
 import { PublicNavbar, Footer } from '../components/layout/Navbar';
 import { Button } from '../components/ui/Button';

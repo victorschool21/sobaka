@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, TrendingUp } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import { listOccurrences } from '../services/occurrenceService';
 import { OccurrenceCard } from '../components/occurrence/OccurrenceCard';
 import { Button } from '../components/ui/Button';

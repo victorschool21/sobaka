@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { listOccurrences } from '../services/occurrenceService';
@@ -10,13 +10,34 @@ import type { Occurrence, OccurrenceFilters } from '../types';
 import { getCurrentPosition } from '../utils/geolocation';
 import { sortByDistance } from '../services/occurrenceService';
 
+type State = { loading: boolean; occurrences: Occurrence[] };
+type Action =
+  | { type: 'loaded'; occurrences: Occurrence[] }
+  | { type: 'error' };
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'loaded':
+      return { loading: false, occurrences: action.occurrences };
+    case 'error':
+      return { ...state, loading: false };
+    default:
+      return state;
+  }
+}
+
 export function OccurrencesPage() {
-  const [filters, setFilters] = useState<OccurrenceFilters>({ status: 'active' });
-  const [occurrences, setOccurrences] = useState<Occurrence[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useReducer(
+    (_: OccurrenceFilters, next: OccurrenceFilters) => next,
+    { status: 'active' } as OccurrenceFilters,
+  );
+  const [{ loading, occurrences }, dispatch] = useReducer(reducer, {
+    loading: true,
+    occurrences: [],
+  });
 
   useEffect(() => {
-    setLoading(true);
+    let cancelled = false;
     listOccurrences(filters)
       .then(async (items) => {
         try {
@@ -26,8 +47,15 @@ export function OccurrencesPage() {
           return items;
         }
       })
-      .then(setOccurrences)
-      .finally(() => setLoading(false));
+      .then((items) => {
+        if (!cancelled) dispatch({ type: 'loaded', occurrences: items });
+      })
+      .catch(() => {
+        if (!cancelled) dispatch({ type: 'error' });
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [filters]);
 
   return (
