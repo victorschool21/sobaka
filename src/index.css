@@ -480,6 +480,13 @@ textarea:focus-visible {
   padding: 1rem;
   border-radius: var(--radius);
   border: 1px solid var(--color-border);
+  align-items: end;
+}
+
+.filters-bar-action {
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 0.1rem;
 }
 
 /* Map */
@@ -509,6 +516,24 @@ textarea:focus-visible {
 
 .map-place-marker {
   font-size: 1.25rem;
+}
+
+/* Location Picker */
+.location-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.location-picker-hint {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  margin: 0;
+}
+
+.location-picker-map {
+  border: 1px solid var(--color-border);
+  cursor: crosshair;
 }
 
 .map-legend {

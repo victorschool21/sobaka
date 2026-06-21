@@ -25,19 +25,28 @@ export function isWithinRadius(
 }
 
 export async function getCurrentPosition(): Promise<GeoPoint> {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('Geolocalização não suportada neste dispositivo.'));
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) =>
-        resolve({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        }),
-      (err) => reject(new Error(err.message)),
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
-    );
-  });
+  if (!navigator.geolocation) {
+    throw new Error('Geolocalização não suportada neste dispositivo.');
+  }
+
+  const getPosition = (highAccuracy: boolean, timeout: number): Promise<GeoPoint> =>
+    new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) =>
+          resolve({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+          }),
+        (err) => reject(new Error(err.message)),
+        { enableHighAccuracy: highAccuracy, timeout, maximumAge: 60000 },
+      );
+    });
+
+  try {
+    // Tenta GPS de alta precisão primeiro (5s)
+    return await getPosition(true, 5000);
+  } catch {
+    // Fallback: precisão baixa via IP/WiFi (10s)
+    return await getPosition(false, 10000);
+  }
 }

@@ -23,7 +23,6 @@ export function Navbar() {
         <nav className="nav-links" aria-label="Navegação principal">
           <NavLink to="/mapa">Mapa</NavLink>
           <NavLink to="/ocorrencias">Ocorrências</NavLink>
-          <NavLink to="/locais">Pet Shops & Vets</NavLink>
           <NavLink to="/notificacoes" className="nav-icon-link" aria-label="Notificações">
             <Bell size={18} aria-hidden="true" />
             <span className="sr-only">Notificações</span>

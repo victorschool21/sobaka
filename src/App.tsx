@@ -13,7 +13,6 @@ import { OccurrencesPage } from './pages/OccurrencesPage';
 import { CreateOccurrencePage } from './pages/CreateOccurrencePage';
 import { OccurrenceDetailPage } from './pages/OccurrenceDetailPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { PlacesPage } from './pages/PlacesPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { AdminPage } from './pages/AdminPage';
 
@@ -49,7 +48,6 @@ export default function App() {
               <Route path="/ocorrencias" element={<OccurrencesPage />} />
               <Route path="/ocorrencias/nova" element={<CreateOccurrencePage />} />
               <Route path="/ocorrencias/:id" element={<OccurrenceDetailPage />} />
-              <Route path="/locais" element={<PlacesPage />} />
               <Route path="/notificacoes" element={<NotificationsPage />} />
               <Route path="/perfil" element={<ProfilePage />} />
               <Route

@@ -75,14 +75,8 @@ export async function getOccurrence(id: string): Promise<Occurrence | null> {
 export async function listOccurrences(
   filters: OccurrenceFilters = {},
 ): Promise<Occurrence[]> {
-  const constraints = [];
-  if (filters.status) constraints.push(where('status', '==', filters.status));
-  if (filters.type) constraints.push(where('type', '==', filters.type));
-  if (filters.species) constraints.push(where('species', '==', filters.species));
-
   const q = query(
     collection(getFirebaseDb(), COLLECTION),
-    ...constraints,
     orderBy('createdAt', 'desc'),
   );
   const snap = await getDocs(q);

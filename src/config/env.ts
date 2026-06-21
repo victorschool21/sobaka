@@ -17,6 +17,7 @@ export const env = {
     vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY ?? '',
   },
   mapboxToken: import.meta.env.VITE_MAPBOX_TOKEN ?? '',
+  imgbbApiKey: import.meta.env.VITE_IMGBB_API_KEY ?? '',
 };
 
 export function isFirebaseConfigured(): boolean {
@@ -33,4 +34,8 @@ export function isMapboxConfigured(): boolean {
 
 export function getMapboxToken(): string {
   return requireEnv('VITE_MAPBOX_TOKEN');
+}
+
+export function getImgbbApiKey(): string {
+  return requireEnv('VITE_IMGBB_API_KEY');
 }

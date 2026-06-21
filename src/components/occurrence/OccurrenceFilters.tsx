@@ -1,4 +1,7 @@
+import { useState } from 'react';
+import { Search } from 'lucide-react';
 import type { OccurrenceFilters, OccurrenceStatus, OccurrenceType, PetSpecies } from '../../types';
+import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 
@@ -16,10 +19,10 @@ const typeOptions = [
 ];
 
 const statusOptions = [
+  { value: '', label: 'Todos' },
   { value: 'active', label: 'Ativos' },
   { value: 'resolved', label: 'Resolvidos' },
   { value: 'archived', label: 'Arquivados' },
-  { value: '', label: 'Todos' },
 ];
 
 const speciesOptions = [
@@ -30,22 +33,34 @@ const speciesOptions = [
 ];
 
 export function OccurrenceFiltersBar({ filters, onChange }: OccurrenceFiltersBarProps) {
+  const [draft, setDraft] = useState<OccurrenceFilters>(filters);
+
+  const handleApply = () => {
+    onChange(draft);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleApply();
+    }
+  };
+
   return (
-    <section className="filters-bar" aria-label="Filtros de ocorrências">
+    <section className="filters-bar" aria-label="Filtros de ocorrências" onKeyDown={handleKeyDown}>
       <Input
         label="Buscar"
         name="query"
         placeholder="Nome, cor, raça..."
-        value={filters.query ?? ''}
-        onChange={(e) => onChange({ ...filters, query: e.target.value || undefined })}
+        value={draft.query ?? ''}
+        onChange={(e) => setDraft({ ...draft, query: e.target.value || undefined })}
       />
       <Select
         label="Tipo"
         name="type"
-        value={filters.type ?? ''}
+        value={draft.type ?? ''}
         onChange={(e) =>
-          onChange({
-            ...filters,
+          setDraft({
+            ...draft,
             type: (e.target.value || undefined) as OccurrenceType | undefined,
           })
         }
@@ -54,10 +69,10 @@ export function OccurrenceFiltersBar({ filters, onChange }: OccurrenceFiltersBar
       <Select
         label="Status"
         name="status"
-        value={filters.status ?? 'active'}
+        value={draft.status ?? ''}
         onChange={(e) =>
-          onChange({
-            ...filters,
+          setDraft({
+            ...draft,
             status: (e.target.value || undefined) as OccurrenceStatus | undefined,
           })
         }
@@ -66,15 +81,20 @@ export function OccurrenceFiltersBar({ filters, onChange }: OccurrenceFiltersBar
       <Select
         label="Espécie"
         name="species"
-        value={filters.species ?? ''}
+        value={draft.species ?? ''}
         onChange={(e) =>
-          onChange({
-            ...filters,
+          setDraft({
+            ...draft,
             species: (e.target.value || undefined) as PetSpecies | undefined,
           })
         }
         options={speciesOptions}
       />
+      <div className="filters-bar-action">
+        <Button type="button" onClick={handleApply}>
+          <Search size={16} aria-hidden="true" /> Filtrar
+        </Button>
+      </div>
     </section>
   );
 }

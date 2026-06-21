@@ -26,7 +26,8 @@ A Sobaka transforma compaixão em ação imediata, permitindo:
 | Camada | Tecnologia |
 |--------|------------|
 | Frontend | React 19, TypeScript, Vite, PWA |
-| Backend | Firebase (Auth, Firestore, Storage, FCM) |
+| Backend | Firebase (Auth, Firestore, FCM) |
+| Imagens | ImgBB API |
 | Mapas | Mapbox GL JS |
 | Validação | Zod |
 | Testes | Vitest + Testing Library |
@@ -45,8 +46,7 @@ src/
 └── utils/          # Geolocalização, validadores, formatadores
 firebase/
 ├── firestore.rules # Regras de segurança
-├── firestore.indexes.json
-└── storage.rules
+└── firestore.indexes.json
 ```
 
 Separação em **camadas** (UI → services → Firebase) facilita manutenção, testes unitários e evolução do sistema.
@@ -56,6 +56,7 @@ Separação em **camadas** (UI → services → Firebase) facilita manutenção,
 - Node.js 20+
 - Conta [Firebase](https://console.firebase.google.com)
 - Token [Mapbox](https://account.mapbox.com/access-tokens/)
+- Chave de API [ImgBB](https://api.imgbb.com/)
 
 ## Configuração
 
@@ -78,18 +79,17 @@ npm install
 cp .env.example .env
 ```
 
-Preencha as credenciais do Firebase e o token Mapbox.
+Preencha as credenciais do Firebase, o token do Mapbox e a API Key do ImgBB.
 
 4. No Firebase Console, ative:
    - **Authentication** → E-mail/senha
    - **Firestore Database**
-   - **Storage**
    - **Cloud Messaging** (para push)
 
 5. Deploy das regras de segurança:
 
 ```bash
-firebase deploy --only firestore:rules,storage:rules,firestore:indexes
+firebase deploy --only firestore:rules,firestore:indexes
 ```
 
 6. (Opcional) Popule locais iniciais na coleção `places` usando os dados em `src/services/placeService.ts`.
@@ -133,7 +133,7 @@ Evidências de execução são geradas em `coverage/` após `test:coverage`.
 
 - Autenticação via Firebase Auth
 - Regras Firestore com controle por papel (RBAC)
-- Storage limitado a imagens (< 5 MB)
+- Imagens hospedadas via ImgBB (links públicos)
 - Validação client-side com Zod
 - Denúncias e moderação administrativa
 - Dados de localização associados apenas a ocorrências autorizadas

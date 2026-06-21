@@ -7,20 +7,21 @@ import { OccurrenceFiltersBar } from '../components/occurrence/OccurrenceFilters
 import { Button } from '../components/ui/Button';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import type { Occurrence, OccurrenceFilters } from '../types';
-import { getCurrentPosition } from '../utils/geolocation';
-import { sortByDistance } from '../services/occurrenceService';
 
 type State = { loading: boolean; occurrences: Occurrence[] };
 type Action =
+  | { type: 'loading' }
   | { type: 'loaded'; occurrences: Occurrence[] }
   | { type: 'error' };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
+    case 'loading':
+      return { ...state, loading: true };
     case 'loaded':
       return { loading: false, occurrences: action.occurrences };
     case 'error':
-      return { ...state, loading: false };
+      return { loading: false, occurrences: [] };
     default:
       return state;
   }
@@ -29,7 +30,7 @@ function reducer(state: State, action: Action): State {
 export function OccurrencesPage() {
   const [filters, setFilters] = useReducer(
     (_: OccurrenceFilters, next: OccurrenceFilters) => next,
-    { status: 'active' } as OccurrenceFilters,
+    {} as OccurrenceFilters,
   );
   const [{ loading, occurrences }, dispatch] = useReducer(reducer, {
     loading: true,
@@ -38,15 +39,8 @@ export function OccurrencesPage() {
 
   useEffect(() => {
     let cancelled = false;
+    dispatch({ type: 'loading' });
     listOccurrences(filters)
-      .then(async (items) => {
-        try {
-          const pos = await getCurrentPosition();
-          return sortByDistance(items, pos);
-        } catch {
-          return items;
-        }
-      })
       .then((items) => {
         if (!cancelled) dispatch({ type: 'loaded', occurrences: items });
       })

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Send } from 'lucide-react';
 import { useAuth } from '../../contexts/useAuth';
-import { sendMessage, subscribeMessages } from '../../services/chatService';
+import { loadMessages, sendMessage, subscribeMessages } from '../../services/chatService';
 import type { ChatMessage } from '../../types';
 import { chatMessageSchema } from '../../utils/validators';
 import { Button } from '../ui/Button';
@@ -16,8 +16,30 @@ export function ChatPanel({ occurrenceId }: { occurrenceId: string }) {
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const unsubscribe = subscribeMessages(occurrenceId, setMessages);
-    return unsubscribe;
+    let cancelled = false;
+
+    // Carrega mensagens imediatamente via one-shot query
+    loadMessages(occurrenceId)
+      .then((msgs) => {
+        if (!cancelled) setMessages(msgs);
+      })
+      .catch((err) => console.error('Erro ao carregar mensagens:', err));
+
+    // Tenta escutar em tempo real (pode falhar sem índice)
+    const unsubscribe = subscribeMessages(
+      occurrenceId,
+      (msgs) => {
+        if (!cancelled) setMessages(msgs);
+      },
+      (err) => {
+        console.error('Falha no listener de mensagens, usando fallback:', err);
+      },
+    );
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, [occurrenceId]);
 
   useEffect(() => {
@@ -42,6 +64,9 @@ export function ChatPanel({ occurrenceId }: { occurrenceId: string }) {
         content: parsed.data.content,
       });
       setContent('');
+      // Recarrega mensagens para garantir que a nova aparece
+      const msgs = await loadMessages(occurrenceId);
+      setMessages(msgs);
     } catch {
       setError('Não foi possível enviar a mensagem.');
     } finally {

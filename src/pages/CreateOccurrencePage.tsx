@@ -7,9 +7,9 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { TextArea } from '../components/ui/TextArea';
+import { LocationPicker } from '../components/map/LocationPicker';
 import { occurrenceSchema } from '../utils/validators';
-import { getCurrentPosition } from '../utils/geolocation';
-import type { OccurrenceType, PetSpecies } from '../types';
+import type { GeoPoint, OccurrenceType, PetSpecies } from '../types';
 
 const typeOptions = [
   { value: 'lost', label: 'Pet perdido' },
@@ -36,6 +36,7 @@ export function CreateOccurrencePage() {
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
   const [photos, setPhotos] = useState<File[]>([]);
+  const [location, setLocation] = useState<GeoPoint | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -58,9 +59,13 @@ export function CreateOccurrencePage() {
       return;
     }
 
+    if (!location) {
+      setError('Selecione a localização no mapa.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const location = await getCurrentPosition();
       const id = await createOccurrence({
         type: parsed.data.type,
         reporterId: profile.uid,
@@ -79,7 +84,7 @@ export function CreateOccurrencePage() {
       });
 
       if (photos.length > 0) {
-        const urls = await uploadOccurrencePhotos(photos, id);
+        const urls = await uploadOccurrencePhotos(photos);
         await updateOccurrence(id, { photoURLs: urls }, profile.uid);
       }
 
@@ -106,6 +111,10 @@ export function CreateOccurrencePage() {
         <Input label="Cor (opcional)" name="color" value={color} onChange={(e) => setColor(e.target.value)} />
         <TextArea label="Descrição" name="description" rows={4} required value={description} onChange={(e) => setDescription(e.target.value)} />
         <Input label="Endereço aproximado (opcional)" name="address" value={address} onChange={(e) => setAddress(e.target.value)} />
+        <div className="form-field">
+          <label>Localização no mapa *</label>
+          <LocationPicker value={location} onChange={setLocation} height="360px" />
+        </div>
         <div className="form-field">
           <label htmlFor="photos">Fotos (opcional)</label>
           <input

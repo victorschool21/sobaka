@@ -1,8 +1,8 @@
 import {
   addDoc,
   collection,
+  getDocs,
   onSnapshot,
-  orderBy,
   query,
   where,
   type Unsubscribe,
@@ -21,16 +21,47 @@ export async function sendMessage(
   });
 }
 
-export function subscribeMessages(
+/**
+ * Carrega todas as mensagens de uma ocorrência (one-shot).
+ */
+export async function loadMessages(
   occurrenceId: string,
-  callback: (messages: ChatMessage[]) => void,
-): Unsubscribe {
+): Promise<ChatMessage[]> {
   const q = query(
     collection(getFirebaseDb(), COLLECTION),
     where('occurrenceId', '==', occurrenceId),
-    orderBy('createdAt', 'asc'),
   );
-  return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() }) as ChatMessage));
-  });
+  const snap = await getDocs(q);
+  const messages = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as ChatMessage);
+  // Ordenar client-side para evitar índice composto
+  return messages.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
+/**
+ * Escuta mensagens em tempo real de uma ocorrência.
+ * Filtra e ordena client-side para evitar índice composto no Firestore.
+ */
+export function subscribeMessages(
+  occurrenceId: string,
+  callback: (messages: ChatMessage[]) => void,
+  onError?: (error: Error) => void,
+): Unsubscribe {
+  // Usa apenas where SEM orderBy para evitar exigir índice composto
+  const q = query(
+    collection(getFirebaseDb(), COLLECTION),
+    where('occurrenceId', '==', occurrenceId),
+  );
+  return onSnapshot(
+    q,
+    (snap) => {
+      const messages = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as ChatMessage);
+      // Ordenar client-side
+      messages.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+      callback(messages);
+    },
+    (error) => {
+      console.error('Erro ao escutar mensagens:', error);
+      onError?.(error);
+    },
+  );
 }
